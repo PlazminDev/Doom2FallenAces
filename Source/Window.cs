@@ -101,14 +101,11 @@ public class Window : GameWindow
         ImGui.DockSpaceOverViewport();
 
         ImGui.BeginMainMenuBar();
-        if(ImGui.Button("Load WAD") && !prefPopup)
+        if(ImGui.Button("Load WAD"))
         {
-            selectedMap = null;
-            selectedLevel = -1;
-            loaded = null;
-            exportPopup = false;
+            wadPopup = true;
         }
-        if (ImGui.Button("Prefrences") && !exportPopup && loaded != null)
+        if (ImGui.Button("Prefrences"))
         {
             prefPopup = true;
         }
@@ -117,7 +114,7 @@ public class Window : GameWindow
         LumpView();
         Inspector();
 
-        if (loaded == null)
+        if (wadPopup)
         {
             ImGui.OpenPopup("##LOADWAD");
             OpenFile();
@@ -149,6 +146,7 @@ public class Window : GameWindow
 
     bool exportPopup = false;
     bool prefPopup = false;
+    bool wadPopup = false;
 
     private void OpenFile()
     {
@@ -157,6 +155,11 @@ public class Window : GameWindow
         if (ImGui.BeginPopupModal("##LOADWAD", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar))
         {
             ImGui.InputText("Enter path to WAD", wadPath, 128);
+            if (ImGui.Button("Cancel"))
+            {
+                wadPopup = false;
+            }
+            ImGui.SameLine();
             if (ImGui.Button("Paste"))
             {
                 wadPath = new byte[128];
@@ -188,7 +191,10 @@ public class Window : GameWindow
                     var wad = new WAD(path);
                     if(wad.valid)
                     {
+                        this.selectedLevel = -1;
+                        this.selectedMap = null;
                         this.loaded = wad;
+                        this.wadPopup = false;
                     }
                     else
                     {
