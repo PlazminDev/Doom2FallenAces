@@ -65,7 +65,8 @@ public static class MapRenderer
 
         for (int i = 0; i < map.things.Length; i++)
         {
-            vertices.Add(new WireVertex(new Vector3(map.things[i].x, map.things[i].y, 0), new Vector4(1, 0, 0, 1)));
+            vertices.Add(new WireVertex(new Vector3(map.things[i].x, map.things[i].y, 0), 
+                map.things[i].type > 4 ? new Vector4(1, 0, 0, 1) : new Vector4(0, 1, 0, 1)));
             indices.Add(i);
         }
 
@@ -84,10 +85,11 @@ public static class MapRenderer
         GL.BindVertexArray(mesh.VAO);
         GL.DrawElements(PrimitiveType.Lines, mesh.VertexCount, DrawElementsType.UnsignedInt, 0);
 
-        // this looks ugly so im just not gonna use this
-        // uncomment if you want ig
-        //GL.BindVertexArray(things.VAO);
-        //GL.DrawElements(PrimitiveType.Points, things.VertexCount, DrawElementsType.UnsignedInt, 0);
+        if (Preferences.DrawThings)
+        {
+            GL.BindVertexArray(things.VAO);
+            GL.DrawElements(PrimitiveType.Points, things.VertexCount, DrawElementsType.UnsignedInt, 0);
+        }
 
         GL.DisableVertexAttribArray(0);
         GL.DisableVertexAttribArray(1);
@@ -99,7 +101,8 @@ public static class MapRenderer
 
     public static void Cleanup()
     {
-        shader.Cleanup();
+        if(shader != null)
+            shader.Cleanup();
     }
 
     private static string shaderSrc = "" +

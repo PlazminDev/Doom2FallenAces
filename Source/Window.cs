@@ -5,6 +5,8 @@ using System.Numerics;
 using System.Text;
 using ImGuiNET;
 using System.Drawing;
+using IniParser;
+using IniParser.Model;
 
 namespace DoomToFA;
 
@@ -19,7 +21,11 @@ public class Window : GameWindow
     private Texture missingTex;
     private Framebuffer framebuffer;
 
+    private IniData ini;
+
     public static Vector2 Size = new Vector2(800, 600);
+
+    private static readonly string configFile = "user.ini";
 
     public Window() : base(GameWindowSettings.Default, new NativeWindowSettings() { 
         Title = "Doom To Fallen Aces",
@@ -39,7 +45,23 @@ public class Window : GameWindow
         missingTex = Texture.GenMissingTexture();
         missingTex.SetWrapMode(TextureWrapMode.Clamp);
 
-        framebuffer = new Framebuffer(256, 256, 2);
+        framebuffer = new Framebuffer(512, 512, 2);
+
+        if (!File.Exists(configFile))
+        {
+            ini = new IniData();
+
+            ini.Sections.Add(new SectionData("General"));
+
+            ini.Sections["General"]["DrawThings"] = "0";
+        }
+        else
+        {
+            FileIniDataParser parser = new FileIniDataParser();
+            ini = parser.ReadFile(configFile);
+
+            Preferences.DrawThings = ini.Sections["General"]["DrawThings"] == "1" ? true : false;
+        }
     }
 
     protected override void OnUnload()
@@ -50,6 +72,9 @@ public class Window : GameWindow
         missingTex.Cleanup();
 
         MapRenderer.Cleanup();
+
+        FileIniDataParser parser = new FileIniDataParser();
+        parser.WriteFile(configFile, ini);
     }
 
     protected override void OnResize(ResizeEventArgs e)
@@ -76,12 +101,16 @@ public class Window : GameWindow
         ImGui.DockSpaceOverViewport();
 
         ImGui.BeginMainMenuBar();
-        if(ImGui.Button("Load WAD"))
+        if(ImGui.Button("Load WAD") && !prefPopup)
         {
             selectedMap = null;
             selectedLevel = -1;
             loaded = null;
             exportPopup = false;
+        }
+        if (ImGui.Button("Prefrences") && !exportPopup && loaded != null)
+        {
+            prefPopup = true;
         }
         ImGui.EndMainMenuBar();
 
@@ -100,6 +129,12 @@ public class Window : GameWindow
             ExportPopup();
         }
 
+        if (prefPopup)
+        {
+            ImGui.OpenPopup("Preferences");
+            PreferencesPopup();
+        }
+
         _ImGuiController.Render();
         ImGuiController.CheckGLError("End of frame");
 
@@ -113,11 +148,12 @@ public class Window : GameWindow
     string errorMsg = string.Empty;
 
     bool exportPopup = false;
+    bool prefPopup = false;
 
     private void OpenFile()
     {
-        ImGui.SetNextWindowPos(new Vector2 (0, (ClientSize.Y / 2.0f) - (74 / 2)));
-        ImGui.SetNextWindowSize(new Vector2 (ClientSize.X, 74));
+        ImGui.SetNextWindowPos(new Vector2 (0, (ClientSize.Y / 2.0f) - (72 / 2)));
+        ImGui.SetNextWindowSize(new Vector2 (ClientSize.X, 72));
         if (ImGui.BeginPopupModal("##LOADWAD", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar))
         {
             ImGui.InputText("Enter path to WAD", wadPath, 128);
@@ -135,6 +171,8 @@ public class Window : GameWindow
             if (ImGui.Button("Submit"))
             {
                 string path = Utils.GetTerminatedString(wadPath);
+                path = path.Replace("\"", "");
+                Console.WriteLine(path);
                 if (!File.Exists(path))
                 {
                     error = true;
@@ -222,6 +260,8 @@ public class Window : GameWindow
         ImGui.End();
     }
 
+    private static readonly int PREVIEW_SCALE_OFFSET = 64;
+
     private void Inspector()
     {
         ImGui.Begin("Inspector");
@@ -237,7 +277,9 @@ public class Window : GameWindow
                 exportPopup = true;
             }
 
-            ImGui.Image(framebuffer.colorTex, new Vector2(ImGui.GetWindowWidth() - 128));
+            ImGui.Image(framebuffer.colorTex, new Vector2(Math.Min(
+                ImGui.GetWindowWidth() - PREVIEW_SCALE_OFFSET, 
+                ImGui.GetWindowHeight() - PREVIEW_SCALE_OFFSET)));
 
             ImGui.NewLine();
 
@@ -250,5 +292,24 @@ public class Window : GameWindow
         }
 
         ImGui.End();
+    }
+
+    private void PreferencesPopup()
+    {
+        if (ImGui.BeginPopupModal("Preferences", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
+        {
+            if(ImGui.Checkbox("Draw Things", ref Preferences.DrawThings) && selectedMap != null)
+            {
+                ini.Sections["General"]["DrawThings"] = Preferences.DrawThings ? "1" : "0";
+                framebuffer.Bind();
+                MapRenderer.RenderMap(selectedMap);
+                framebuffer.Unbind();
+            }
+            if (ImGui.Button("OK"))
+            {
+                prefPopup = false;
+            }
+            ImGui.EndPopup();
+        }
     }
 }
