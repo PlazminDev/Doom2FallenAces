@@ -45,7 +45,7 @@ public class Window : GameWindow
         missingTex = Texture.GenMissingTexture();
         missingTex.SetWrapMode(TextureWrapMode.Clamp);
 
-        framebuffer = new Framebuffer(512, 512, 2);
+        framebuffer = new Framebuffer(256, 256, 0);
 
         if (!File.Exists(configFile))
         {

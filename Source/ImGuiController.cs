@@ -256,6 +256,8 @@ void main()
         io.MouseDown[3] = MouseState[MouseButton.Button4];
         io.MouseDown[4] = MouseState[MouseButton.Button5];
 
+        io.MouseWheel = MouseState.ScrollDelta.Y;
+
         var screenPoint = new Vector2i((int)MouseState.X, (int)MouseState.Y);
         var point = screenPoint;//wnd.PointToClient(screenPoint);
         io.MousePos = new System.Numerics.Vector2(point.X, point.Y);
