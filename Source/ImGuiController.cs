@@ -337,12 +337,12 @@ void main()
 
         if (GLVersion <= 310 || CompatibilityProfile)
         {
-            GL.PolygonMode(MaterialFace.Front, PolygonMode.Fill);
-            GL.PolygonMode(MaterialFace.Back, PolygonMode.Fill);
+            GL.PolygonMode(TriangleFace.Front, PolygonMode.Fill);
+            GL.PolygonMode(TriangleFace.Back, PolygonMode.Fill);
         }
         else
         {
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+            GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
         }
 
         // Bind the element buffer (thru the VAO) so that we can resize it.
@@ -466,12 +466,12 @@ void main()
         if (prevScissorTestEnabled) GL.Enable(EnableCap.ScissorTest); else GL.Disable(EnableCap.ScissorTest);
         if (GLVersion <= 310 || CompatibilityProfile)
         {
-            GL.PolygonMode(MaterialFace.Front, (PolygonMode)prevPolygonMode[0]);
-            GL.PolygonMode(MaterialFace.Back, (PolygonMode)prevPolygonMode[1]);
+            GL.PolygonMode(TriangleFace.Front, (PolygonMode)prevPolygonMode[0]);
+            GL.PolygonMode(TriangleFace.Back, (PolygonMode)prevPolygonMode[1]);
         }
         else
         {
-            GL.PolygonMode(MaterialFace.FrontAndBack, (PolygonMode)prevPolygonMode[0]);
+            GL.PolygonMode(TriangleFace.FrontAndBack, (PolygonMode)prevPolygonMode[0]);
         }
     }
 

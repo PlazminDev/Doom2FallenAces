@@ -76,7 +76,7 @@ public class Window : GameWindow
         ImGui.DockSpaceOverViewport();
 
         ImGui.BeginMainMenuBar();
-        if(ImGui.Button("Load New Map"))
+        if(ImGui.Button("Load WAD"))
         {
             selectedMap = null;
             selectedLevel = -1;
@@ -192,7 +192,7 @@ public class Window : GameWindow
                 if (loaded.Lumps[i].Name.StartsWith("MAP") || (loaded.Lumps[i].Name[0] == 'E' && char.IsNumber(loaded.Lumps[i].Name[1])
                     && loaded.Lumps[i].Name[2] == 'M' && char.IsNumber(loaded.Lumps[i].Name[3])))
                 {
-                    if (ImGui.Button(loaded.Lumps[i].Name, new Vector2(64, 20)))
+                    if (ImGui.Button(loaded.Lumps[i].Name, new Vector2(ImGui.GetWindowSize().X - 30, 20)))
                     {
                         selectedMap = new Map(loaded.Lumps[i].Name, i, loaded.Lumps);
                         selectedLevel = i;
@@ -229,6 +229,10 @@ public class Window : GameWindow
 
             ImGui.Text("NUMVERTICES: " + selectedMap.vertices.Length);
             ImGui.Text("NUMLINEDEFS: " + selectedMap.linedefs.Length);
+            ImGui.Text("NUMSIDEDEFS: " + selectedMap.sidedefs.Length);
+            ImGui.Text("NUMSEGS: " + selectedMap.segs.Length);
+            ImGui.Text("NUMSSECTORS: " + selectedMap.ssectors.Length);
+            ImGui.Text("NUMSECTORS: " + selectedMap.sectors.Length);
         }
 
         ImGui.End();

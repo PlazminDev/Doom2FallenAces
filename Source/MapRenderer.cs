@@ -28,7 +28,7 @@ public static class MapRenderer
             max.X = MathF.Max(max.X, map.vertices[i].X);
             max.Y = MathF.Max(max.Y, map.vertices[i].Y);
         }
-        Vector3 mid = (min + max) / 2.0f; 
+        Vector3 mid = (min + max) / 2.0f;
         camera.position.X = mid.X;
         camera.position.Y = mid.Y;
 
@@ -48,7 +48,6 @@ public static class MapRenderer
 
         for (int i = 0; i < map.vertices.Length; i++)
         {
-            Console.WriteLine(map.vertices[i]);
             vertices.Add(new WireVertex(new Vector3(map.vertices[i].X, map.vertices[i].Y, 0), new Vector4(1, 1, 0, 1)));
         }
 
