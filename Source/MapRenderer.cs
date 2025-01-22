@@ -28,7 +28,7 @@ public static class MapRenderer
             max.X = MathF.Max(max.X, map.vertices[i].X);
             max.Y = MathF.Max(max.Y, map.vertices[i].Y);
         }
-        Vector3 mid = (min + max) / 2.0f;
+        Vector3 mid = (min + max) / 2.0f; 
         camera.position.X = mid.X;
         camera.position.Y = mid.Y;
 
