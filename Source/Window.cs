@@ -125,8 +125,11 @@ public class Window : GameWindow
             {
                 wadPath = new byte[128];
                 byte[] data = Encoding.UTF8.GetBytes(ClipboardString);
-                for(int i = 0; i < data.Length; i++)
-                    wadPath[i] = data[i];
+                if (data.Length < wadPath.Length)
+                {
+                    for (int i = 0; i < data.Length; i++)
+                        wadPath[i] = data[i];
+                }
             }
             ImGui.SameLine();
             if (ImGui.Button("Submit"))
@@ -135,7 +138,12 @@ public class Window : GameWindow
                 if (!File.Exists(path))
                 {
                     error = true;
-                    errorMsg = "Path does not exist!";
+                    if (Directory.Exists(path))
+                    {
+                        errorMsg = "Path doesn't reference a file!";
+                    }
+                    else
+                        errorMsg = "Path does not exist!";
                 }
                 else
                 {
@@ -163,6 +171,12 @@ public class Window : GameWindow
         if (ImGui.BeginPopupModal("##EXPORT", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar))
         {
             ImGui.InputText("Enter name of exported map", nameBuffer, 32);
+            if (ImGui.Button("Cancel"))
+            {
+                exportPopup = false;
+                nameBuffer = new byte[32];
+            }
+            ImGui.SameLine();
             if (ImGui.Button("Paste"))
             {
                 wadPath = new byte[128];

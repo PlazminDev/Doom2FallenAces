@@ -14,6 +14,7 @@ public static class AceExporter
         WriteVertices(mapFile, map);
         WriteLines(mapFile, map);
         WriteSectors(mapFile, map);
+        WriteThings(mapFile, map);
 
         if (!Directory.Exists(name))
             Directory.CreateDirectory(name);
@@ -104,6 +105,7 @@ public static class AceExporter
 
     private static void WriteSectors(StringBuilder mapFile, Map map)
     {
+        /*
         for(int s = 0; s < map.sectors.Length; s++)
         {
             for (int i = map.sectors[s].light; i < map.ssectors.Length; i++)
@@ -138,5 +140,39 @@ public static class AceExporter
                 mapFile.AppendLine();
             }
         }
+        */
+    }
+
+    private static void WriteThings(StringBuilder mapFile, Map map)
+    {
+        int offset = 0;
+        for(int i = 0; i < map.things.Length; i++)
+        {
+            if (ThingConversion(map.things[i].type) == -1) { offset--; continue; }
+
+            mapFile.AppendLine("Thing // " + (i + offset));
+            mapFile.AppendLine("{");
+
+            mapFile.AppendLine("layer = 0;");
+            mapFile.AppendLine($"x = {map.things[i].x};");
+            mapFile.AppendLine($"y = {10.0f};");
+            mapFile.AppendLine($"z = {map.things[i].y};");
+
+            mapFile.AppendLine($"definition_id = {ThingConversion(map.things[i].type)};");
+
+            mapFile.AppendLine("}");
+            mapFile.AppendLine();
+        }
+    }
+
+    private static int ThingConversion(int doom)
+    {
+        switch (doom)
+        {
+            case 1: // Player 1 (Mike)
+                return 13484;
+        }
+
+        return -1;
     }
 }

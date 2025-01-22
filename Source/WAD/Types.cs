@@ -97,3 +97,21 @@ public struct SubSector
         this.first = first;
     }
 }
+
+public struct Thing
+{
+    public float x;
+    public float y;
+    public short angle;
+    public short type;
+    public short flags;
+
+    public Thing(float x, float y, short angle, short type, short flags)
+    {
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
+        this.type = type;
+        this.flags = flags;
+    }
+}

@@ -1,7 +1,15 @@
-﻿using System.Text;
+﻿using System.Numerics;
+using System.Text;
 
 public static class Utils
 {
+    public static float DOOM2ACE_SCALAR = 0.3f;
+
+    public static Vector2 CoordinateConversion(short x, short y)
+    {
+        return new Vector2(-x, y) * DOOM2ACE_SCALAR;
+    }
+
     public static string GetTerminatedString(byte[] data)
     {
         int i = 0;

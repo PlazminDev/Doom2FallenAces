@@ -9,7 +9,6 @@ public class Map
                 "SSECTORS","NODES","SECTORS","REJECT","BLOCKMAP","BEHAVIOR","ZNODES"];
 
     private static readonly int[] LUMPLENGTHS = [10, 14, 30, 4, 12, -1, 4, -1, 26];
-    private static readonly float SCALAR = 0.006f;
 
     public string name;
 
@@ -19,7 +18,7 @@ public class Map
     public Seg[] segs;
     public Sector[] sectors;
     public SubSector[] ssectors;
-
+    public Thing[] things;
 
     public Map(string name, int lumpIndex, Lump[] lumps)
     {
@@ -44,11 +43,6 @@ public class Map
         ParseLinedefs(GetMapLump(MAPLUMPS[1], lumpIndex, lumpNames, lumps));
     }
 
-    private void ParseThings(Lump lump)
-    {
-
-    }
-
     private void ParseVertices(Lump lump)
     {
         using(MemoryStream stream = new MemoryStream(lump.Data))
@@ -59,11 +53,10 @@ public class Map
                 vertices = new Vector2[numVertices];
                 for (int i = 0; i < numVertices; i++)
                 {
-                    vertices[i] = new Vector2(
-                        -br.ReadInt16(),
-                        br.ReadInt16()
-                    );
-                    vertices[i] *= SCALAR;
+                    short x = br.ReadInt16();
+                    short y = br.ReadInt16();
+
+                    vertices[i] = Utils.CoordinateConversion(x, y);
                 }
             }
         }
@@ -178,6 +171,33 @@ public class Map
                     ssectors[i] = new SubSector(
                         br.ReadUInt16(),
                         br.ReadUInt16()
+                    );
+                }
+            }
+        }
+    }
+
+    private void ParseThings(Lump lump)
+    {
+        using (MemoryStream stream = new MemoryStream(lump.Data))
+        {
+            using (BinaryReader br = new BinaryReader(stream))
+            {
+                int num = lump.Data.Length / LUMPLENGTHS[0];
+                things = new Thing[num];
+                for (int i = 0; i < num; i++)
+                {
+                    short x = br.ReadInt16();
+                    short y = br.ReadInt16();
+
+                    Vector2 pos = Utils.CoordinateConversion(x, y);
+
+                    things[i] = new Thing(
+                        pos.X,
+                        pos.Y,
+                        br.ReadInt16(),
+                        br.ReadInt16(),
+                        br.ReadInt16()
                     );
                 }
             }
