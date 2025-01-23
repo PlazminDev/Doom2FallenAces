@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
 using System.Text;
 
+namespace DoomToFA;
+
 public static class Utils
 {
     public static float DOOM2ACE_SCALAR = 0.3f;

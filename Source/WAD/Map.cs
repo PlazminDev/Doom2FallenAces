@@ -73,13 +73,13 @@ public class Map
                 for (int i = 0; i < numLinedefs; i++)
                 {
                     linedefs[i] = new Linedef(
-                        br.ReadUInt16(),
-                        br.ReadUInt16(),
-                        br.ReadUInt16(),
-                        br.ReadUInt16(),
-                        br.ReadUInt16(),
-                        br.ReadUInt16(),
-                        br.ReadUInt16()
+                        br.ReadInt16(),
+                        br.ReadInt16(),
+                        br.ReadInt16(),
+                        br.ReadInt16(),
+                        br.ReadInt16(),
+                        br.ReadInt16(),
+                        br.ReadInt16()
                     );
                 }
             }
@@ -104,8 +104,6 @@ public class Map
                         Utils.ReadTerminatedString(br, 8),
                         br.ReadUInt16()
                     );
-
-
                 }
             }
         }

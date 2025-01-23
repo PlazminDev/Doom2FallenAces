@@ -7,7 +7,6 @@ using ImGuiNET;
 using System.Drawing;
 using IniParser;
 using IniParser.Model;
-
 namespace DoomToFA;
 
 public class Window : GameWindow
@@ -62,6 +61,11 @@ public class Window : GameWindow
 
             Preferences.DrawThings = ini.Sections["General"]["DrawThings"] == "1" ? true : false;
         }
+
+        if(File.Exists("history"))
+        {
+            pathHistory = new(File.ReadAllLines("history"));
+        }
     }
 
     protected override void OnUnload()
@@ -75,6 +79,17 @@ public class Window : GameWindow
 
         FileIniDataParser parser = new FileIniDataParser();
         parser.WriteFile(configFile, ini);
+
+        if(pathHistory.Count > 0)
+        {
+            using (StreamWriter stream = new StreamWriter("history"))
+            {
+                for (int i = 0; i < pathHistory.Count; i++)
+                {
+                    stream.WriteLine(pathHistory[i]);
+                }
+            }
+        }
     }
 
     protected override void OnResize(ResizeEventArgs e)
@@ -148,13 +163,38 @@ public class Window : GameWindow
     bool prefPopup = false;
     bool wadPopup = false;
 
+    private List<string> pathHistory = new();
+
+    /*
+    private List<string> pathHistory = new(new string[] {
+        "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Ultimate Doom\\base\\DOOM.WAD\"",
+        "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Ultimate Doom\\base\\doom2\\DOOM2.WAD\""
+    });
+    */
+
     private void OpenFile()
     {
-        ImGui.SetNextWindowPos(new Vector2 (0, (ClientSize.Y / 2.0f) - (72 / 2)));
-        ImGui.SetNextWindowSize(new Vector2 (ClientSize.X, 72));
+        ImGui.SetNextWindowPos(new Vector2 (0, (ClientSize.Y / 2.0f) - (100 / 2)));
+        ImGui.SetNextWindowSize(new Vector2 (ClientSize.X, 100));
         if (ImGui.BeginPopupModal("##LOADWAD", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar))
         {
-            ImGui.InputText("Enter path to WAD", wadPath, 128);
+            ImGui.TextUnformatted("Enter path to WAD");
+            ImGui.InputText("##Enter path to WAD", wadPath, 128);
+            if(ImGui.BeginCombo("##PATHHISTORY", "Path History"))
+            {
+                for(int i = 0; i < pathHistory.Count; i++)
+                {
+                    ImGui.SetNextItemWidth(50);
+                    if (ImGui.Selectable(pathHistory[i]))
+                    {
+                        wadPath = new byte[128];
+                        byte[] data = Encoding.UTF8.GetBytes(pathHistory[i]);
+                        for (int j = 0; j < data.Length; j++)
+                            wadPath[j] = data[j];
+                    }
+                }
+                ImGui.EndCombo();
+            }
             if (ImGui.Button("Cancel"))
             {
                 wadPopup = false;
@@ -162,12 +202,15 @@ public class Window : GameWindow
             ImGui.SameLine();
             if (ImGui.Button("Paste"))
             {
-                wadPath = new byte[128];
-                byte[] data = Encoding.UTF8.GetBytes(ClipboardString);
-                if (data.Length < wadPath.Length)
+                if (ClipboardString != null)
                 {
-                    for (int i = 0; i < data.Length; i++)
-                        wadPath[i] = data[i];
+                    wadPath = new byte[128];
+                    byte[] data = Encoding.UTF8.GetBytes(ClipboardString);
+                    if (data.Length < wadPath.Length)
+                    {
+                        for (int i = 0; i < data.Length; i++)
+                            wadPath[i] = data[i];
+                    }
                 }
             }
             ImGui.SameLine();
@@ -191,8 +234,10 @@ public class Window : GameWindow
                     var wad = new WAD(path);
                     if(wad.valid)
                     {
+                        if(!pathHistory.Contains(path, StringComparer.OrdinalIgnoreCase))
+                            pathHistory.Add(path);
+
                         this.selectedLevel = -1;
-                        this.selectedMap = null;
                         this.loaded = wad;
                         this.wadPopup = false;
                     }
@@ -219,14 +264,6 @@ public class Window : GameWindow
             {
                 exportPopup = false;
                 nameBuffer = new byte[32];
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Paste"))
-            {
-                wadPath = new byte[128];
-                byte[] data = Encoding.UTF8.GetBytes(ClipboardString);
-                for (int i = 0; i < data.Length; i++)
-                    wadPath[i] = data[i];
             }
             ImGui.SameLine();
             if (ImGui.Button("Export"))

@@ -24,7 +24,7 @@ public class Texture
         GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, new int[] { (int)TextureMagFilter.Nearest });
         GL.TexParameterI(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, new int[] { (int)TextureMinFilter.Nearest });
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, data);
-        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D); // for some reason this line is crucial to the texture loading
+        //GL.GenerateMipmap(GenerateMipmapTarget.Texture2D); // for some reason this line is crucial to the texture loading
 
         Unbind();
 

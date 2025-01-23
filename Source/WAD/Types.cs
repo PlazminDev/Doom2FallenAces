@@ -1,22 +1,24 @@
-﻿public struct Linedef
-{
-    public ushort v1;
-    public ushort v2;
-    public ushort flags;
-    public ushort action;
-    public ushort tag;
-    public ushort right;
-    public ushort left;
+﻿namespace DoomToFA;
 
-    public Linedef(ushort v1, ushort v2, ushort flags, ushort action, ushort tag, ushort right, ushort left)
+public struct Linedef
+{
+    public short v1;
+    public short v2;
+    public short flags;
+    public short action;
+    public short tag;
+    public short front;
+    public short back;
+
+    public Linedef(short v1, short v2, short flags, short action, short tag, short front, short back)
     {
         this.v1 = v1;
         this.v2 = v2;
         this.flags = flags;
         this.action = action;
         this.tag = tag;
-        this.right = right;
-        this.left = left;
+        this.front = front;
+        this.back = back;
     }
 
     public override string ToString()
@@ -73,6 +75,9 @@ public struct Sector
     public ushort light;
     public ushort type;
     public ushort tag;
+
+    public List<int> vertices;
+    public List<int> lines;
 
     public Sector(ushort floor, ushort ceil, string floorName, string ceilName, ushort light, ushort type, ushort tag)
     {

@@ -16,6 +16,8 @@ public static class AceExporter
         WriteSectors(mapFile, map);
         WriteThings(mapFile, map);
 
+        WriteInfo(infoFile, name);
+
         if (!Directory.Exists(name))
             Directory.CreateDirectory(name);
 
@@ -24,6 +26,31 @@ public static class AceExporter
             byte[] data = Encoding.UTF8.GetBytes(mapFile.ToString());
             stream.Write(data, 0, data.Length);
         }
+
+        using (FileStream stream = File.Create(name + "/chapterInfo.txt"))
+        {
+            byte[] data = Encoding.UTF8.GetBytes(infoFile.ToString());
+            stream.Write(data, 0, data.Length);
+        }
+    }
+
+    private static void WriteInfo(StringBuilder infoFile, string _mapName)
+    {
+        infoFile.AppendLine(@"title = """ + _mapName + @""";");
+        infoFile.AppendLine(@"over_title_text = ""Custom Level"";");
+        infoFile.AppendLine(@"order = 99;");
+        infoFile.AppendLine(@"secret_count = 0;");
+        infoFile.AppendLine(@"loading_screen_ambience = 9;");
+        infoFile.AppendLine(@"loading_screen_music = 27;");
+        infoFile.AppendLine(@"world_file_name = """ + Regex.Replace(_mapName, @"\s+", "") + @".txt"";");
+        infoFile.AppendLine(@"sprite_groups = ""Level 1"", ""Note Backgrounds"";");
+        infoFile.AppendLine(@"always_unlocked = true;");
+        infoFile.AppendLine(@"description_text = ""Custom Level Description"";");
+        infoFile.AppendLine(@"faction_name = 0 ""Glasshearts"";");
+        infoFile.AppendLine(@"faction_color = 0 ""red"";");
+        infoFile.AppendLine(@"faction_name = 1 ""Benedettos"";");
+        infoFile.AppendLine(@"faction_color = 1 ""purple"";");
+        infoFile.AppendLine();
     }
 
     private static void Global(StringBuilder mapFile)
@@ -48,10 +75,9 @@ public static class AceExporter
         mapFile.AppendLine("}");
         mapFile.AppendLine();
 
-        mapFile.AppendLine("");
         mapFile.AppendLine("LayerInfo");
         mapFile.AppendLine("{");
-        mapFile.AppendLine("id = 1;");
+        mapFile.AppendLine("id = 0;");
         mapFile.AppendLine(@"name = Base;");
         mapFile.AppendLine("}");
         mapFile.AppendLine();
@@ -78,7 +104,7 @@ public static class AceExporter
             mapFile.AppendLine("{");
             mapFile.AppendLine("v1 = " + (map.linedefs[i].v1) + ";");
             mapFile.AppendLine("v2 = " + (map.linedefs[i].v2) + ";");
-            mapFile.AppendLine("side_middle = " + i + ";");
+            mapFile.AppendLine("side_middle = " + (map.linedefs[i].front) + ";");
             mapFile.AppendLine("}");
             mapFile.AppendLine();
         }
@@ -105,42 +131,54 @@ public static class AceExporter
 
     private static void WriteSectors(StringBuilder mapFile, Map map)
     {
-        /*
+
+        for (int s = 0; s < map.sectors.Length; s++)
+        {
+            map.sectors[s].vertices = new();
+            map.sectors[s].lines = new();
+        }
+
+        for (int i = 0; i < map.linedefs.Length; i++)
+        {
+            var linedefs = map.linedefs[i];
+
+            map.sectors[map.sidedefs[map.linedefs[i].front].sector].lines.Add(i);
+            map.sectors[map.sidedefs[map.linedefs[i].front].sector].vertices.Add(map.linedefs[i].v1);
+        }
+
         for(int s = 0; s < map.sectors.Length; s++)
         {
-            for (int i = map.sectors[s].light; i < map.ssectors.Length; i++)
-            {
-                mapFile.AppendLine("Sector // " + i);
-                mapFile.AppendLine("{");
-                mapFile.AppendLine("layer = 0;");
+            mapFile.AppendLine("Sector // " + s);
+            mapFile.AppendLine("{");
 
-                List<int> vertices = new();
-                Console.WriteLine(map.ssectors[i].segCount);
-                for (int j = map.ssectors[i].first; j < map.ssectors[i].first + map.ssectors[i].segCount; j++)
-                {
-                    vertices.Add(map.segs[j].v1);
-                    vertices.Add(map.segs[j].v2);
-                }
+            mapFile.AppendLine("layer = 0;");
 
-                var verticesText = "";
-                for (int j = 0; j < vertices.Count; j++)
-                {
-                    verticesText += vertices[j] + ",";
-                }
+            string vertices = "";
+            for (int i = 0; i < map.sectors[s].vertices.Count + 5; i++)
+                vertices += i + ",";
 
-                mapFile.AppendLine("vertices = " + verticesText + ";");
+            mapFile.AppendLine("vertices = " + vertices + ";");
 
-                mapFile.AppendLine("height_floor = " + map.sectors[i].floor + ";");
-                mapFile.AppendLine("height_ceiling = " + map.sectors[i].ceil + ";");
-                //mapFile.AppendLine("lighting = 1, 1, 1, 1;");
-                mapFile.AppendLine("lighting = " + (1) + ", " + (1) + ", " + (1) + ", " + (1));
-                mapFile.AppendLine("floor_slope ( sloped = False; direction = 0; height = 0; )");
-                mapFile.AppendLine("ceiling_slope( sloped = False; direction = 0; height = 0; )");
+            string lines = "";
+            for (int i = 0; i < map.sectors[s].vertices.Count + 5; i++)
+                lines += i + ",";
 
-                mapFile.AppendLine();
-            }
+            mapFile.AppendLine("lines = " + lines + ";");
+
+            mapFile.AppendLine($"height_floor = {(float)map.sectors[s].floor * Utils.DOOM2ACE_SCALAR};");
+            mapFile.AppendLine($"height_ceiling = {(float)map.sectors[s].ceil * Utils.DOOM2ACE_SCALAR};");
+
+            mapFile.AppendLine("lighting = 1, 1, 1, 1");
+            mapFile.AppendLine("floor_slope ( sloped = False; direction = 0; height = 0; )");
+            mapFile.AppendLine("ceiling_slope ( sloped = False; direction = 0; height = 0; )");
+            mapFile.AppendLine("floor_texture(path = \"Editor/Default\"; offset = 0, 0; scale = 1, 1; angle = 0; )");
+            mapFile.AppendLine("ceiling_texture(path = \"Editor/Default\"; offset = 0, 0; scale = 1, 1; angle = 0; )");
+            mapFile.AppendLine("floor_plane (visible = True; solid = True; brightness_offset = 0;)");
+            mapFile.AppendLine("ceiling_plane (visible = True; solid = True; brightness_offset = 0;)");
+
+            mapFile.AppendLine("}");
+            mapFile.AppendLine();
         }
-        */
     }
 
     private static void WriteThings(StringBuilder mapFile, Map map)
