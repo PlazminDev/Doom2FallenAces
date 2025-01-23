@@ -107,6 +107,29 @@ public class Window : GameWindow
         _ImGuiController.PressChar((char)e.Unicode);
     }
 
+    protected override void OnFileDrop(FileDropEventArgs e)
+    {
+        base.OnFileDrop(e);
+
+        if (wadPopup)
+        {
+            for(int i = 0; i < e.FileNames.Length; i++)
+            {
+                if (e.FileNames[i].EndsWith(".wad", StringComparison.OrdinalIgnoreCase))
+                {
+                    wadPath = new byte[128];
+                    byte[] data = Encoding.UTF8.GetBytes(e.FileNames[i]);
+                    if (data.Length < wadPath.Length)
+                    {
+                        for (int j = 0; j < data.Length; j++)
+                            wadPath[j] = data[j];
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
     protected override void OnRenderFrame(FrameEventArgs args)
     {
         GL.ClearColor(new OpenTK.Mathematics.Color4(0, 0, 0, 255));
@@ -178,7 +201,7 @@ public class Window : GameWindow
         ImGui.SetNextWindowSize(new Vector2 (ClientSize.X, 100));
         if (ImGui.BeginPopupModal("##LOADWAD", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar))
         {
-            ImGui.TextUnformatted("Enter path to WAD");
+            ImGui.TextUnformatted("Enter path to WAD or Drag and Drop WAD on window");
             ImGui.InputText("##Enter path to WAD", wadPath, 128);
             if(ImGui.BeginCombo("##PATHHISTORY", "Path History"))
             {
@@ -218,7 +241,6 @@ public class Window : GameWindow
             {
                 string path = Utils.GetTerminatedString(wadPath);
                 path = path.Replace("\"", "");
-                Console.WriteLine(path);
                 if (!File.Exists(path))
                 {
                     error = true;
