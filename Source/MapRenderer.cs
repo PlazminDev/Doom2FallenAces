@@ -5,12 +5,18 @@ namespace DoomToFA;
 
 public static class MapRenderer
 {
+    public static Vector3 PreviewBackground = new Vector3(0,0,1);
+    public static Vector3 LineColor = new Vector3(1,1,0);
+    public static Vector3 ThingColor = new Vector3(1,0,0);
+    public static Vector3 PlayerColor = new Vector3(0,1,0);
+
     private static Shader shader;
     private static bool shaderCompiled = false;
 
     public static void RenderMap(Map map)
     {
-        GL.ClearColor(new OpenTK.Mathematics.Color4(0, 0, 255, 255));
+        GL.ClearColor(new OpenTK.Mathematics.Color4(
+            PreviewBackground.X, PreviewBackground.Y, PreviewBackground.Z, 255));
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         Camera camera = new Camera(1, 1);
@@ -48,7 +54,7 @@ public static class MapRenderer
 
         for (int i = 0; i < map.vertices.Length; i++)
         {
-            vertices.Add(new WireVertex(new Vector3(map.vertices[i].X, map.vertices[i].Y, 0), new Vector4(1, 1, 0, 1)));
+            vertices.Add(new WireVertex(new Vector3(map.vertices[i].X, map.vertices[i].Y, 0), new Vector4(LineColor, 1.0f)));
         }
 
         for(int i = 0; i < map.linedefs.Length; i++)
@@ -66,7 +72,7 @@ public static class MapRenderer
         for (int i = 0; i < map.things.Length; i++)
         {
             vertices.Add(new WireVertex(new Vector3(map.things[i].x, map.things[i].y, 0), 
-                map.things[i].type > 4 ? new Vector4(1, 0, 0, 1) : new Vector4(0, 1, 0, 1)));
+                map.things[i].type > 4 ? new Vector4(ThingColor, 1.0f) : new Vector4(PlayerColor, 1)));
             indices.Add(i);
         }
 

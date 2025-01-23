@@ -30,7 +30,8 @@ public class Window : GameWindow
         Title = "Doom To Fallen Aces",
         ClientSize = new OpenTK.Mathematics.Vector2i(800, 600), 
         Vsync = OpenTK.Windowing.Common.VSyncMode.On,
-        APIVersion = new Version(3, 3) 
+        APIVersion = new Version(3, 3),
+        WindowBorder = WindowBorder.Fixed
     }){}
 
     protected override void OnLoad()
@@ -60,6 +61,11 @@ public class Window : GameWindow
             ini = parser.ReadFile(configFile);
 
             Preferences.DrawThings = ini.Sections["General"]["DrawThings"] == "1" ? true : false;
+
+            MapRenderer.PreviewBackground = Utils.GetVector(ini.Sections["General"]["PreviewBackground"]) / 255.0f;
+            MapRenderer.LineColor = Utils.GetVector(ini.Sections["General"]["LineColor"]) / 255.0f;
+            MapRenderer.ThingColor = Utils.GetVector(ini.Sections["General"]["ThingColor"]) / 255.0f;
+            MapRenderer.PlayerColor = Utils.GetVector(ini.Sections["General"]["PlayerColor"]) / 255.0f;
         }
 
         if(File.Exists("history"))
@@ -198,11 +204,13 @@ public class Window : GameWindow
     private void OpenFile()
     {
         ImGui.SetNextWindowPos(new Vector2 (0, (ClientSize.Y / 2.0f) - (100 / 2)));
-        ImGui.SetNextWindowSize(new Vector2 (ClientSize.X, 100));
+        ImGui.SetNextWindowSize(new Vector2 (ClientSize.X, 120));
         if (ImGui.BeginPopupModal("##LOADWAD", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar))
         {
             ImGui.TextUnformatted("Enter path to WAD or Drag and Drop WAD on window");
+            ImGui.SetNextItemWidth(ClientSize.X - 16);
             ImGui.InputText("##Enter path to WAD", wadPath, 128);
+            ImGui.SetNextItemWidth(120.0f);
             if(ImGui.BeginCombo("##PATHHISTORY", "Path History"))
             {
                 for(int i = 0; i < pathHistory.Count; i++)
@@ -306,12 +314,13 @@ public class Window : GameWindow
         {
             for (int i = 0; i < loaded.Lumps.Length; i++)
             {
-                if (loaded.Lumps[i].Name.StartsWith("MAP") || (loaded.Lumps[i].Name[0] == 'E' && char.IsNumber(loaded.Lumps[i].Name[1])
-                    && loaded.Lumps[i].Name[2] == 'M' && char.IsNumber(loaded.Lumps[i].Name[3])))
+                var name = loaded.Lumps[i].Name;
+                if ((name.StartsWith("MAP") && name != "MAPINFO") || (name[0] == 'E' && char.IsNumber(name[1])
+                    && name[2] == 'M' && char.IsNumber(name[3])))
                 {
-                    if (ImGui.Button(loaded.Lumps[i].Name, new Vector2(ImGui.GetWindowSize().X - 30, 20)))
+                    if (ImGui.Button(name, new Vector2(ImGui.GetWindowSize().X - 30, 20)))
                     {
-                        selectedMap = new Map(loaded.Lumps[i].Name, i, loaded.Lumps);
+                        selectedMap = new Map(name, i, loaded.Lumps);
                         selectedLevel = i;
 
                         framebuffer.Bind();
@@ -361,20 +370,37 @@ public class Window : GameWindow
 
     private void PreferencesPopup()
     {
-        if (ImGui.BeginPopupModal("Preferences", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
+        if (ImGui.BeginPopupModal("Preferences"))
         {
             if(ImGui.Checkbox("Draw Things", ref Preferences.DrawThings) && selectedMap != null)
             {
                 ini.Sections["General"]["DrawThings"] = Preferences.DrawThings ? "1" : "0";
-                framebuffer.Bind();
-                MapRenderer.RenderMap(selectedMap);
-                framebuffer.Unbind();
+                RenderPreview();
             }
+            ImGui.ColorEdit3("Preview Clear Color", ref MapRenderer.PreviewBackground);
+            ImGui.ColorEdit3("Preview Line Color", ref MapRenderer.LineColor);
+            ImGui.ColorEdit3("Preview Thing Color", ref MapRenderer.ThingColor);
+            ImGui.ColorEdit3("Preview Player Color", ref MapRenderer.PlayerColor);
             if (ImGui.Button("OK"))
             {
+                ini.Sections["General"]["PreviewBackground"] = (MapRenderer.PreviewBackground * 255).ToString();
+                ini.Sections["General"]["LineColor"] = (MapRenderer.LineColor * 255).ToString();
+                ini.Sections["General"]["ThingColor"] = (MapRenderer.ThingColor * 255).ToString();
+                ini.Sections["General"]["PlayerColor"] = (MapRenderer.PlayerColor * 255).ToString();
+                RenderPreview();
                 prefPopup = false;
             }
             ImGui.EndPopup();
+        }
+    }
+
+    private void RenderPreview()
+    {
+        if(selectedLevel != -1 && selectedMap != null)
+        {
+            framebuffer.Bind();
+            MapRenderer.RenderMap(selectedMap);
+            framebuffer.Unbind();
         }
     }
 }
