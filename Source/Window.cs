@@ -53,7 +53,7 @@ public class Window : GameWindow
 
             ini.Sections.Add(new SectionData("General"));
 
-            ini.Sections["General"]["DrawThings"] = "0";
+            ini.Sections["General"]["DrawThings"] = "1";
         }
         else
         {
@@ -372,23 +372,23 @@ public class Window : GameWindow
     {
         if (ImGui.BeginPopupModal("Preferences"))
         {
-            if(ImGui.Checkbox("Draw Things", ref Preferences.DrawThings) && selectedMap != null)
-            {
-                ini.Sections["General"]["DrawThings"] = Preferences.DrawThings ? "1" : "0";
-                RenderPreview();
-            }
+            ImGui.Checkbox("Draw Things", ref Preferences.DrawThings);
+
             ImGui.ColorEdit3("Preview Clear Color", ref MapRenderer.PreviewBackground);
             ImGui.ColorEdit3("Preview Line Color", ref MapRenderer.LineColor);
             ImGui.ColorEdit3("Preview Thing Color", ref MapRenderer.ThingColor);
             ImGui.ColorEdit3("Preview Player Color", ref MapRenderer.PlayerColor);
             if (ImGui.Button("OK"))
             {
+                ini.Sections["General"]["DrawThings"] = Preferences.DrawThings ? "1" : "0";
+
                 ini.Sections["General"]["PreviewBackground"] = (MapRenderer.PreviewBackground * 255).ToString();
                 ini.Sections["General"]["LineColor"] = (MapRenderer.LineColor * 255).ToString();
                 ini.Sections["General"]["ThingColor"] = (MapRenderer.ThingColor * 255).ToString();
                 ini.Sections["General"]["PlayerColor"] = (MapRenderer.PlayerColor * 255).ToString();
-                RenderPreview();
                 prefPopup = false;
+
+                RenderPreview();
             }
             ImGui.EndPopup();
         }
